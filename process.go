@@ -12,11 +12,11 @@ var (
 	ErrInvalidRequest error = errors.New("invalid request")
 )
 
-func Process(in io.Reader, out io.Writer) error {
+func Process(in io.Reader) ([]byte, error) {
 
 	input, err := ioutil.ReadAll(in)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	input = bytes.TrimSpace(input)
@@ -27,14 +27,14 @@ func Process(in io.Reader, out io.Writer) error {
 			var rec Request
 
 			if err := json.Unmarshal(input, &rec); err != nil {
-				return ErrInvalidRequest
+				return nil, ErrInvalidRequest
 			}
 
 			if resp := exec(&rec); resp != nil {
-				return json.NewEncoder(out).Encode(resp)
+				return json.Marshal(resp)
 			}
 
-			return nil
+			return nil, nil
 
 		} else if input[0] == '[' {
 
@@ -42,19 +42,18 @@ func Process(in io.Reader, out io.Writer) error {
 			resp := make([]interface{}, 0, 10)
 
 			if err := json.Unmarshal(input, &recs); err != nil {
-				return ErrInvalidRequest
+				return nil, ErrInvalidRequest
 			}
 
 			for _, rec := range recs {
-
 				if r := exec(&rec); r != nil {
 					resp = append(resp, r)
 				}
 			}
 
-			return json.NewEncoder(out).Encode(resp)
+			return json.Marshal(resp)
 		}
 	}
 
-	return ErrInvalidRequest
+	return nil, ErrInvalidRequest
 }
