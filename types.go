@@ -25,5 +25,10 @@ type Response struct {
 	Id      *json.RawMessage `json:"id"`
 	JsonRPC string           `json:"jsonrpc"`
 	Result  interface{}      `json:"result"`
+}
+
+type ErrResponse struct {
+	Id      *json.RawMessage `json:"id"`
+	JsonRPC string           `json:"jsonrpc"`
 	Error   interface{}      `json:"error"`
 }

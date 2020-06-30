@@ -33,7 +33,7 @@ func Handle(in []byte) ([]byte, error) {
 		} else if in[0] == '[' {
 
 			recs := make([]Request, 0)
-			resp := make([]*Response, 0, 10)
+			resp := make([]interface{}, 0, 10)
 
 			if err := json.Unmarshal(in, &recs); err != nil {
 				return nil, ErrInvalidRequest

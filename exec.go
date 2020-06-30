@@ -11,11 +11,11 @@ func RegMethod(method string, fn interface{}) {
 	callback[method] = fn
 }
 
-func MakeError(rec *Request, code int64, message string) *Response {
-	return &Response{Id: rec.Id, JsonRPC: "2.0", Error: &Error{Code: code, Message: message}}
+func MakeError(rec *Request, code int64, message string) *ErrResponse {
+	return &ErrResponse{Id: rec.Id, JsonRPC: "2.0", Error: &Error{Code: code, Message: message}}
 }
 
-func Exec(rec *Request) (resp *Response) {
+func Exec(rec *Request) (resp interface{}) {
 
 	defer func() {
 
@@ -67,7 +67,7 @@ func Exec(rec *Request) (resp *Response) {
 	}
 
 	if !rets[1].IsNil() {
-		return &Response{Id: rec.Id, JsonRPC: rec.JsonRPC, Error: rets[1].Interface()}
+		return &ErrResponse{Id: rec.Id, JsonRPC: rec.JsonRPC, Error: rets[1].Interface()}
 	}
 
 	return &Response{Id: rec.Id, JsonRPC: rec.JsonRPC, Result: rets[0].Interface()}
