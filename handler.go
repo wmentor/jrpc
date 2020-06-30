@@ -6,6 +6,10 @@ import (
 	"errors"
 )
 
+var (
+	ErrInvalidRequest error = errors.New("invalid request")
+)
+
 func Handle(in []byte) ([]byte, error) {
 
 	in = bytes.TrimSpace(in)
@@ -16,7 +20,7 @@ func Handle(in []byte) ([]byte, error) {
 			var rec Request
 
 			if err := json.Unmarshal(in, &rec); err != nil {
-				return nil, errors.New("invalid request")
+				return nil, ErrInvalidRequest
 			}
 
 			if resp := Exec(&rec); resp != nil {
@@ -32,7 +36,7 @@ func Handle(in []byte) ([]byte, error) {
 			resp := make([]*Response, 0, 10)
 
 			if err := json.Unmarshal(in, &recs); err != nil {
-				return nil, errors.New("invalid request")
+				return nil, ErrInvalidRequest
 			}
 
 			for _, rec := range recs {
@@ -47,5 +51,5 @@ func Handle(in []byte) ([]byte, error) {
 		}
 	}
 
-	return nil, errors.New("unsupported object type")
+	return nil, ErrInvalidRequest
 }
