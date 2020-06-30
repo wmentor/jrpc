@@ -15,7 +15,7 @@ func MakeError(rec *Request, code int64, message string) *ErrResponse {
 	return &ErrResponse{Id: rec.Id, JsonRPC: "2.0", Error: &Error{Code: code, Message: message}}
 }
 
-func Exec(rec *Request) (resp interface{}) {
+func exec(rec *Request) (resp interface{}) {
 
 	defer func() {
 

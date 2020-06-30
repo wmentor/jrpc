@@ -4,52 +4,57 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 )
 
 var (
 	ErrInvalidRequest error = errors.New("invalid request")
 )
 
-func Handle(in []byte) ([]byte, error) {
+func Process(in io.Reader, out io.Writer) error {
 
-	in = bytes.TrimSpace(in)
+	input, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
 
-	if len(in) > 0 {
-		if in[0] == '{' {
+	input = bytes.TrimSpace(input)
+
+	if len(input) > 0 {
+		if input[0] == '{' {
 
 			var rec Request
 
-			if err := json.Unmarshal(in, &rec); err != nil {
-				return nil, ErrInvalidRequest
+			if err := json.Unmarshal(input, &rec); err != nil {
+				return ErrInvalidRequest
 			}
 
-			if resp := Exec(&rec); resp != nil {
-				out, _ := json.Marshal(resp)
-				return out, nil
+			if resp := exec(&rec); resp != nil {
+				return json.NewEncoder(out).Encode(resp)
 			}
 
-			return nil, nil
+			return nil
 
-		} else if in[0] == '[' {
+		} else if input[0] == '[' {
 
 			recs := make([]Request, 0)
 			resp := make([]interface{}, 0, 10)
 
-			if err := json.Unmarshal(in, &recs); err != nil {
-				return nil, ErrInvalidRequest
+			if err := json.Unmarshal(input, &recs); err != nil {
+				return ErrInvalidRequest
 			}
 
 			for _, rec := range recs {
 
-				if r := Exec(&rec); r != nil {
+				if r := exec(&rec); r != nil {
 					resp = append(resp, r)
 				}
 			}
 
-			out, _ := json.Marshal(resp)
-			return out, nil
+			return json.NewEncoder(out).Encode(resp)
 		}
 	}
 
-	return nil, ErrInvalidRequest
+	return ErrInvalidRequest
 }
