@@ -5,17 +5,27 @@ import (
 	"reflect"
 )
 
-var callback map[string]interface{} = map[string]interface{}{}
+type JRPC map[string]interface{}
+
+var global JRPC = map[string]interface{}{}
+
+func New() JRPC {
+	return map[string]interface{}{}
+}
+
+func (c JRPC) RegMethod(method string, fn interface{}) {
+	c[method] = fn
+}
 
 func RegMethod(method string, fn interface{}) {
-	callback[method] = fn
+	global.RegMethod(method, fn)
 }
 
 func MakeError(rec *Request, code int64, message string) *ErrResponse {
 	return &ErrResponse{Id: rec.Id, JsonRPC: "2.0", Error: &Error{Code: code, Message: message}}
 }
 
-func exec(rec *Request) (resp interface{}) {
+func (c JRPC) exec(rec *Request) (resp interface{}) {
 
 	defer func() {
 
@@ -32,7 +42,7 @@ func exec(rec *Request) (resp interface{}) {
 		return nil
 	}
 
-	fn, has_fn := callback[rec.Method]
+	fn, has_fn := c[rec.Method]
 	if !has_fn {
 		if rec.Id != nil {
 			return MakeError(rec, -32601, "Method not found")

@@ -13,6 +13,10 @@ var (
 )
 
 func Process(in io.Reader) ([]byte, error) {
+	return global.Process(in)
+}
+
+func (c JRPC) Process(in io.Reader) ([]byte, error) {
 
 	input, err := ioutil.ReadAll(in)
 	if err != nil {
@@ -30,7 +34,7 @@ func Process(in io.Reader) ([]byte, error) {
 				return nil, ErrInvalidRequest
 			}
 
-			if resp := exec(&rec); resp != nil {
+			if resp := c.exec(&rec); resp != nil {
 				return json.Marshal(resp)
 			}
 
@@ -46,7 +50,7 @@ func Process(in io.Reader) ([]byte, error) {
 			}
 
 			for _, rec := range recs {
-				if r := exec(&rec); r != nil {
+				if r := c.exec(&rec); r != nil {
 					resp = append(resp, r)
 				}
 			}
