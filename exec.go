@@ -76,7 +76,7 @@ func (c JRPC) exec(rec *Request) (resp interface{}) {
 		return nil
 	}
 
-	if !rets[1].IsNil() {
+	if len(rets) > 1 && !rets[1].IsNil() {
 		return &ErrResponse{Id: rec.Id, JsonRPC: rec.JsonRPC, Error: rets[1].Interface()}
 	}
 
