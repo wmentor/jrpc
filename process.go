@@ -12,11 +12,15 @@ var (
 	ErrInvalidRequest error = errors.New("invalid request")
 )
 
-func Process(in io.Reader) ([]byte, error) {
+func Process(in io.Reader, out io.Writer) error {
+	return global.Process(in, out)
+}
+
+func (c JRPC) Process(in io.Reader, out io.Writer) error {
 
 	input, err := ioutil.ReadAll(in)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	input = bytes.TrimSpace(input)
@@ -27,14 +31,14 @@ func Process(in io.Reader) ([]byte, error) {
 			var rec Request
 
 			if err := json.Unmarshal(input, &rec); err != nil {
-				return nil, ErrInvalidRequest
+				return ErrInvalidRequest
 			}
 
-			if resp := exec(&rec); resp != nil {
-				return json.Marshal(resp)
+			if resp := c.exec(&rec); resp != nil {
+				return json.NewEncoder(out).Encode(resp)
 			}
 
-			return nil, nil
+			return nil
 
 		} else if input[0] == '[' {
 
@@ -42,18 +46,18 @@ func Process(in io.Reader) ([]byte, error) {
 			resp := make([]interface{}, 0, 10)
 
 			if err := json.Unmarshal(input, &recs); err != nil {
-				return nil, ErrInvalidRequest
+				return ErrInvalidRequest
 			}
 
 			for _, rec := range recs {
-				if r := exec(&rec); r != nil {
+				if r := c.exec(&rec); r != nil {
 					resp = append(resp, r)
 				}
 			}
 
-			return json.Marshal(resp)
+			return json.NewEncoder(out).Encode(resp)
 		}
 	}
 
-	return nil, ErrInvalidRequest
+	return ErrInvalidRequest
 }
